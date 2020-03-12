@@ -10,6 +10,7 @@ import math, sympy, json
 from dxfwrite import DXFEngine as dxf
 import sys
 import svgwrite
+from svg.path import Path as svgPath, Line as svgLine, Arc as svgArc
 
 if sys.version_info[0]==3:
     import io
@@ -495,6 +496,18 @@ class Arc(Circle):
             result=l.p2
         return result
 
+    def discretize(self, number):
+        nodes = [self._pointStart]
+        chain = [0]
+        distance = self.lenght/number;
+        for i in range(1, number):
+            nodes.append(self.pointAt(distance*i))
+            chain.append('Line')
+            chain.append(i)
+        nodes.append(self._pointEnd)
+        chain.append('Line')
+        chain.append(number)
+        return Path(nodes, chain)
 
     def writeDXF(self,dwg,pos=Point(0,0)):
         if self.orientation>0:
@@ -996,7 +1009,6 @@ class Triangle:
         return 'Triangle (p1='+repr(self.p1)+', p2='+repr(self.p2)+' ,p3='+repr(self.p3)+')'
 
 class Drawing:
-
     def __init__(self):
         self.Scene={}
         self._boundBox=BoundBox()
@@ -1078,14 +1090,13 @@ class Drawing:
             segments = []
             for geometries in self.Scene[id]['Path'].geometries:
                 if geometries[0] == 'Line':
-                    p1 = str(self.Scene[id]['Path'].nodes) + '+' + str(self.Scene[id].nodes[geometries[1]].y) + 'j'
-                    p2 = str(self.Scene[id]) + '+' + str(self.Scene[id].nodes[geometries[2]].y) + 'j'
-                    segments.append(Line(p1, p2))
-            path = Path(*segments)
-            print(path)
-            svgwrite.path.Path(d=path.d(), stroke='black', fill='none')
+                    p_start = complex(self.Scene[id]['Path'].nodes[geometries[1]].x, self.Scene[id]['Path'].nodes[geometries[1]].y)
+                    p_end = complex(self.Scene[id]['Path'].nodes[geometries[2]].x, self.Scene[id]['Path'].nodes[geometries[2]].y)
+                    segments.append(svgLine(p_start, p_end))
+            path_array = svgPath(*segments)
+            dwg.add(svgwrite.path.Path(d=path_array.d(), id="part" + str(count), stroke='black', fill='none'))
+            dwg.save();
             count+=1
-        dwg.save()
         print("Saved " + filename + " with " + str(count) + " element")
 
 def Geo (geometry,nodes):
