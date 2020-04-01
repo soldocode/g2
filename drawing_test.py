@@ -14,12 +14,12 @@ chain = [0,'Line',1,'Line',2,'Line',3,'Line',0]
 
 #Create point for the arc
 a1 = Point(0,0)
-a2 = Point(100,-100)
+a2 = Point(100,100)
 a3 = Point(200,0)
 
 #Create arc
 arc = Arc(a1, a2, a3)
-arc_path = arc.discretize(10)
+arc_path = arc.discretize(20)
 
 #Create path
 lines_path = Path(nodes, chain)
