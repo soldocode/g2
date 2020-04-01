@@ -491,7 +491,7 @@ class Arc(Circle):
     def pointAt(self,value):
         result=None
         if (value>=0.0) and (value<=self.lenght):
-            a=self.angleStart.deg+(self.angle.deg/self.lenght)*value
+            a=self.angleStart.deg-self.orientation*(self.angle.deg/self.lenght)*value
             l=Line(self._center,Polar(self._radius,Angle(deg=a)))
             result=l.p2
         return result
