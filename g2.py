@@ -415,7 +415,6 @@ class Circle:
             chain.append(i)
         chain.append('Line')
         chain.append(0)
-        print(nodes, chain)
         return Path(nodes, chain)
 
     def writeDXF(self,dwg,pos=Point(0,0)):
@@ -1108,9 +1107,10 @@ class Drawing:
                     segments.append(svgLine(p_start, p_end))
             path_array = svgPath(*segments)
             dwg.add(svgwrite.path.Path(d=path_array.d(), id="part" + str(count), stroke='black', fill='none'))
-            dwg.save();
             count+=1
         print("Saved " + filename + " with " + str(count) + " element")
+        print(dwg.tostring())
+        return dwg.tostring()
 
 def Geo (geometry,nodes):
     makeGeo={'Line':Line,'Circle':Circle,'Arc':Arc}
