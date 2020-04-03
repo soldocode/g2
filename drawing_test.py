@@ -21,6 +21,14 @@ a3 = Point(200,0)
 arc = Arc(a1, a2, a3)
 arc_path = arc.discretize(20)
 
+#Create point for circle
+circle_center = Point(100, 100)
+circle_radius = 50
+
+#Create circle
+circle = Circle(circle_center, circle_radius)
+circle_path = circle.discretize(20)
+
 #Create path
 lines_path = Path(nodes, chain)
 
@@ -28,4 +36,5 @@ lines_path = Path(nodes, chain)
 drawing = Drawing()
 drawing.insertPath(0, lines_path)
 drawing.insertPath(1, arc_path)
+drawing.insertPath(2, circle_path)
 drawing.toSVG()
