@@ -405,6 +405,18 @@ class Circle:
             result=l.p2
         return result
 
+    def discretize(self, number):
+        nodes=[]
+        chain = [0]
+        distance = self.lenght/number;
+        for i in range(0, number):
+            nodes.append(self.pointAt(distance*i))
+            chain.append('Line')
+            chain.append(i)
+        chain.append('Line')
+        chain.append(0)
+        return Path(nodes, chain)
+
     def writeDXF(self,dwg,pos=Point(0,0)):
         dwg.add(dxf.circle(self._radius,(self._center._x+pos.x,self._center._y+pos.y)))
         return
@@ -1095,9 +1107,10 @@ class Drawing:
                     segments.append(svgLine(p_start, p_end))
             path_array = svgPath(*segments)
             dwg.add(svgwrite.path.Path(d=path_array.d(), id="part" + str(count), stroke='black', fill='none'))
-            dwg.save();
             count+=1
         print("Saved " + filename + " with " + str(count) + " element")
+        print(dwg.tostring())
+        return dwg.tostring()
 
 def Geo (geometry,nodes):
     makeGeo={'Line':Line,'Circle':Circle,'Arc':Arc}
