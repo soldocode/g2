@@ -1,4 +1,4 @@
 dxfwrite==1.2.2
-svg==0.0.2
+svg.path==0.0.2
 svgwrite==1.4
 sympy==1.5.1

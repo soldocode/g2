@@ -1248,7 +1248,7 @@ def IntersectionCircleLine(circle,line):
 
     else:
         # get m,q
-        eqL=line.get_coeff_equation
+        eqL=line.get_coeff_equation()
 
         # get system equation coefficient
         A=1+math.pow(eqL['m'],2)
