@@ -275,6 +275,15 @@ class Line:
         dwg.add(dxf.line((self._p1._x+pos.x,self._p1._y+pos.y),
                           (self._p2._x+pos.x,self._p2._y+pos.y)))
 
+     
+    def writeSVG(self,pos=Point(0,0)):
+        p_start = complex(self._p1._x+pos.x,self._p1._y+pos.y)
+        p_end = complex(self._p2._x+pos.x,self._p2._y+pos.y)
+        return [svgLine(p_start, p_end)]
+        
+        
+        
+
     @property
     def p1(self):
         return self._p1
@@ -420,6 +429,12 @@ class Circle:
     def writeDXF(self,dwg,pos=Point(0,0)):
         dwg.add(dxf.circle(self._radius,(self._center._x+pos.x,self._center._y+pos.y)))
         return
+    
+    def writeSVG(self,pos=Point(0,0)):
+        # pos not working....
+        circle_path = self.discretize(36)
+        return circle_path.writeSVG()
+
 
     @property
     def center(self):
@@ -533,6 +548,11 @@ class Arc(Circle):
                             self.angleStart.deg,
                             self.angleEnd.deg))
         return
+    
+    def writeSVG(self,pos=Point(0,0)):
+        # pos not working....
+        arc_path = self.discretize(36)
+        return arc_path.writeSVG()
 
 
     def _update(self):
@@ -731,6 +751,16 @@ class Path:
         for i in range(0,len(self._geometries)):
             self.geo(i).writeDXF(dwg,pos)
         return
+    
+    
+    def writeSVG(self,pos=Point(0,0)):
+        segments=[]
+        for g in self.geometries:
+            if g[0] == 'Line':
+                p_start = complex(self.nodes[g[1]].x, self.nodes[g[1]].y)
+                p_end = complex(self.nodes[g[2]].x, self.nodes[g[2]].y)
+                segments.append(svgLine(p_start, p_end))
+        return segments
 
 
     def geo(self,id_geometry):
@@ -1078,7 +1108,6 @@ class Drawing:
         for id in self.Scene:
             if self.Scene[id]['Class']=='GEO':
                geo=self.Scene[id]['Geo']
-               ##geo_class=geo.__class__.__name__
                geo.writeDXF(drawing,self.Scene[id]['Position'])
             if self.Scene[id]['Class']=='TXT':
                text = dxf.text(self.Scene[id]['Txt'],
@@ -1088,29 +1117,34 @@ class Drawing:
                text['layer'] = 'TEXT'
                text['color'] = 7
                drawing.add(text)
-
-
         drawing.save_to_fileobj(output)
         dxf_result=output.getvalue()
         return dxf_result
 
+
     def toSVG(self):
         count = 0
-        filename = 'test.svg'
+        filename = 'drawing.svg'
         dwg = svgwrite.Drawing(filename, profile='tiny')
+        bb=self.boundBox
+        dwg.viewbox(bb.bottomleft.x,bb.bottomleft.y,bb.width,bb.height)
         for id in self.Scene:
-            segments = []
-            for geometries in self.Scene[id]['Path'].geometries:
-                if geometries[0] == 'Line':
-                    p_start = complex(self.Scene[id]['Path'].nodes[geometries[1]].x, self.Scene[id]['Path'].nodes[geometries[1]].y)
-                    p_end = complex(self.Scene[id]['Path'].nodes[geometries[2]].x, self.Scene[id]['Path'].nodes[geometries[2]].y)
-                    segments.append(svgLine(p_start, p_end))
+            segments=[]
+            if self.Scene[id]['Class']=='GEO':
+                geo=self.Scene[id]['Geo']
+                segments+=geo.writeSVG(Point(0,0))
+            if self.Scene[id]['Class']=='PATH':
+                geo=self.Scene[id]['Path']
+                segments+=geo.writeSVG(Point(0,0))
+                
             path_array = svgPath(*segments)
-            dwg.add(svgwrite.path.Path(d=path_array.d(), id="part" + str(count), stroke='black', fill='none'))
-            count+=1
+            if len(segments)>0:
+                dwg.add(svgwrite.path.Path(d=path_array.d(), id="part" + str(count), stroke='black', fill='none'))
+                count+=1
         print("Saved " + filename + " with " + str(count) + " element")
-        print(dwg.tostring())
+        #print(dwg.tostring())
         return dwg.tostring()
+
 
 def Geo (geometry,nodes):
     makeGeo={'Line':Line,'Circle':Circle,'Arc':Arc}
