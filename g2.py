@@ -275,14 +275,14 @@ class Line:
         dwg.add(dxf.line((self._p1._x+pos.x,self._p1._y+pos.y),
                           (self._p2._x+pos.x,self._p2._y+pos.y)))
 
-     
+
     def writeSVG(self,pos=Point(0,0)):
         p_start = complex(self._p1._x+pos.x,self._p1._y+pos.y)
         p_end = complex(self._p2._x+pos.x,self._p2._y+pos.y)
         return [svgLine(p_start, p_end)]
-        
-        
-        
+
+
+
 
     @property
     def p1(self):
@@ -429,7 +429,7 @@ class Circle:
     def writeDXF(self,dwg,pos=Point(0,0)):
         dwg.add(dxf.circle(self._radius,(self._center._x+pos.x,self._center._y+pos.y)))
         return
-    
+
     def writeSVG(self,pos=Point(0,0)):
         # pos not working....
         circle_path = self.discretize(36)
@@ -548,7 +548,7 @@ class Arc(Circle):
                             self.angleStart.deg,
                             self.angleEnd.deg))
         return
-    
+
     def writeSVG(self,pos=Point(0,0)):
         # pos not working....
         arc_path = self.discretize(36)
@@ -751,8 +751,8 @@ class Path:
         for i in range(0,len(self._geometries)):
             self.geo(i).writeDXF(dwg,pos)
         return
-    
-    
+
+
     def writeSVG(self,pos=Point(0,0)):
         segments=[]
         for g in self.geometries:
@@ -1106,6 +1106,11 @@ class Drawing:
         output = io.StringIO()
         drawing = dxf.drawing('drawing.dxf')
         for id in self.Scene:
+            if self.Scene[id]['Class']=='PATH':
+               path=self.Scene[id]['Path']
+               for i in range(0,len(path.geometries)):
+                   geo=path.geo(i)
+                   geo.writeDXF(drawing,self.Scene[id]['Position'])
             if self.Scene[id]['Class']=='GEO':
                geo=self.Scene[id]['Geo']
                geo.writeDXF(drawing,self.Scene[id]['Position'])
@@ -1134,9 +1139,9 @@ class Drawing:
                 geo=self.Scene[id]['Geo']
                 segments+=geo.writeSVG(Point(0,0))
             if self.Scene[id]['Class']=='PATH':
-                geo=self.Scene[id]['Path']
-                segments+=geo.writeSVG(Point(0,0))
-                
+                path=self.Scene[id]['Path']
+                segments+=path.writeSVG(Point(0,0))
+
             path_array = svgPath(*segments)
             if len(segments)>0:
                 dwg.add(svgwrite.path.Path(d=path_array.d(), id="part" + str(count), stroke='black', fill='none'))
